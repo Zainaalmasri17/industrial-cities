@@ -1,0 +1,8 @@
+services:
+  web:
+    build: .
+    image: industrial-cities:latest
+    container_name: industrial-cities
+    ports:
+      - "8095:80"
+    restart: unless-stopped

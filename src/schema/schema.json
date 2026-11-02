@@ -1,0 +1,393 @@
+{
+  "source": "الهيكل المقترح لبيانات المدن الصناعية — مسودة للنقاش · تشرين الأول 2026",
+  "tables": [
+    {
+      "id": "plots", "num": 1, "name": "المقاسم",
+      "purpose": "السجل الأم لكل قطعة أرض في المدينة، سواء كانت مخصصة أو لا.",
+      "row": "مقسم واحد.", "key": ["المدينة", "رقم المقسم الموحد"],
+      "note": "حالة المقسم (مخصص / غير مخصص / يوجد عقد) لا تُكتب هنا بل تُحسب من جدولي التخصيصات والعقود.",
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "desc": "رمز المدينة من الجدول المرجعي", "src": "جديد"},
+        {"name": "رقم المقسم الموحد", "type": "text", "required": true, "desc": "مقسم واحد فقط بصيغة موحدة، بدون +، وبفاصل موحد للفرعي", "src": "ح: رقم المقسم، رقم مقسم معتمد / ع: المقسم"},
+        {"name": "رقم المقسم كما ورد", "type": "text", "required": false, "desc": "القيمة الأصلية قبل التوحيد، للتتبع", "src": "جديد"},
+        {"name": "البلوك / الجزيرة", "type": "text", "required": false, "desc": "الجزء الأول من الرقم الفرعي إن ثبت أنه بلوك", "src": "ح، ع (16\\5، 146/5)"},
+        {"name": "المنطقة / القطاع", "type": "list", "required": true, "list": "sectors", "desc": "حسب تقسيم المدينة", "src": "ح: المنطقة / ع: القطاع"},
+        {"name": "المرحلة الجغرافية", "type": "list", "required": false, "list": "phases", "src": "ح: المرحلة / ع: مرحلة"},
+        {"name": "المساحة م2", "type": "number", "required": true, "desc": "رقم فقط", "src": "ح: المساحة، مساحة المقسم / ع: المساحة"},
+        {"name": "تصنيف المقسم", "type": "list", "required": true, "list": "plot_class", "desc": "صناعي، استعمالات خاصة، مشيدات عامة، خدمي تجاري، إداري، سكني، مستودعات، حرفي", "src": "ح: تصنيف المقسم / ع: سكنية، إدارية"},
+        {"name": "فئة المشيدات", "type": "list", "required": false, "list": "facility_category", "desc": "مثل فئة (ب)، فئة (د)", "src": "ع: الصناعة (مشيدات عامة فئة ب)"},
+        {"name": "حالة الخدمة", "type": "list", "required": false, "list": "service", "desc": "مخدم، غير مخدم، مخدم جزئياً", "src": "ح: مخدم/غير مخدم"},
+        {"name": "التوتر الكهربائي", "type": "list", "required": false, "list": "voltage", "desc": "منخفض، متوسط", "src": "ح: توتر منخفض/متوسط"},
+        {"name": "X خط الطول", "type": "number", "required": false, "desc": "درجات عشرية", "src": "ح: X, E"},
+        {"name": "Y خط العرض", "type": "number", "required": false, "desc": "درجات عشرية", "src": "ح: Y, N"},
+        {"name": "ملاحظات", "type": "text", "required": false, "src": "ح: ملاحظات (كامل المقاسم)"}
+      ]
+    },
+    {
+      "id": "investors", "num": 2, "name": "المستثمرون",
+      "purpose": "كل جهة يمكن أن يُخصَّص لها مقسم: شخص، شركة، جهة عامة.",
+      "row": "مستثمر واحد، مرة واحدة فقط مهما كان عدد مقاسمه.", "key": ["رمز المستثمر"],
+      "note": "المستثمر نفسه قد يملك مقاسم في أكثر من مدينة، لذلك الرمز موحد على مستوى الوزارة.",
+      "fields": [
+        {"name": "رمز المستثمر", "type": "text", "required": true, "desc": "رمز فريد على مستوى الوزارة لا المدينة", "src": "جديد"},
+        {"name": "نوع المستثمر", "type": "list", "required": true, "list": "investor_type", "desc": "شخص طبيعي، شركة، جهة عامة", "src": "جديد (يُستخرج من الاسم)"},
+        {"name": "الاسم الكامل / اسم المنشأة", "type": "text", "required": true, "desc": "الاسم فقط، بدون أسماء الشركاء أو رقم السجل", "src": "ح: اسم المنشأة، المستثمر / ع: الاسم"},
+        {"name": "الشكل القانوني", "type": "list", "required": false, "list": "legal_form", "desc": "فردي، تضامنية، محدودة المسؤولية، مساهمة مغفلة، قيد التأسيس…", "src": "ع، ح: داخل الاسم"},
+        {"name": "رقم السجل التجاري", "type": "text", "required": false, "src": "ع: داخل الاسم (سجل تجاري رقم…)"},
+        {"name": "سنة / مكان السجل", "type": "text", "required": false, "src": "ع: داخل الاسم"},
+        {"name": "العنوان", "type": "text", "required": false, "src": "ح: العنوان"},
+        {"name": "الهاتف 1", "type": "text", "required": false, "desc": "رقم واحد في كل خانة", "src": "ح: الهاتف، رقم الهاتف / ع: جوال، هاتف"},
+        {"name": "الهاتف 2", "type": "text", "required": false, "src": "ح: الهاتف 2"},
+        {"name": "الفاكس", "type": "text", "required": false, "src": "ح: داخل الهاتف"},
+        {"name": "البريد الإلكتروني", "type": "text", "required": false, "src": "ح: Email"},
+        {"name": "اسم الوكيل القانوني", "type": "text", "required": false, "src": "ح: اسم الوكيل القانوني"},
+        {"name": "هاتف الوكيل القانوني", "type": "text", "required": false, "src": "ح: رقم هاتف الوكيل القانوني"}
+      ]
+    },
+    {
+      "id": "partners", "num": 3, "name": "الشركاء",
+      "purpose": "الأشخاص المكوّنون لكل مستثمر.",
+      "row": "شريك واحد لمستثمر واحد.", "key": ["رمز المستثمر", "رقم الوثيقة (أو الاسم)"],
+      "note": "شريك يحمل جنسيتين = سطر واحد مع جنسية أساسية، والثانية في حقل إضافي إذا لزم.",
+      "fields": [
+        {"name": "رمز المستثمر", "type": "text", "required": true, "src": "جديد"},
+        {"name": "الاسم", "type": "text", "required": true, "desc": "الاسم الأول", "src": "ح: أسماء الشركاء / ع: الاسم"},
+        {"name": "اسم الأب", "type": "text", "required": false, "desc": "من صيغة (بن / بنت / أبناء)", "src": "ع: الاسم"},
+        {"name": "الكنية", "type": "text", "required": true, "src": "ح، ع: الاسم"},
+        {"name": "الجنس", "type": "list", "required": false, "list": "gender", "desc": "ذكر، أنثى (لحساب مؤشر سيدات الأعمال)", "src": "ح: سيدات الأعمال"},
+        {"name": "الجنسية", "type": "list", "required": true, "list": "nationality", "desc": "جنسية واحدة في كل خانة", "src": "ح: الجنسية"},
+        {"name": "نوع الوثيقة", "type": "list", "required": false, "list": "doc_type", "desc": "هوية، جواز سفر", "src": "ح: رقم جواز السفر أو الهوية"},
+        {"name": "رقم الوثيقة", "type": "text", "required": false, "desc": "بيانات حساسة: صلاحية اطلاع محددة", "src": "ح: رقم جواز السفر أو الهوية"},
+        {"name": "الصفة", "type": "list", "required": false, "list": "partner_role", "desc": "مالك، شريك، مفوض بالتوقيع", "src": "جديد"},
+        {"name": "نسبة الملكية %", "type": "number", "required": false, "src": "جديد"}
+      ]
+    },
+    {
+      "id": "subscriptions", "num": 4, "name": "طلبات الاكتتاب",
+      "purpose": "المرحلة السابقة للتخصيص: طلب المستثمر قبل صدور قرار التخصيص.",
+      "row": "طلب اكتتاب واحد.", "key": ["المدينة", "رقم الطلب"],
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "جديد"},
+        {"name": "رقم الطلب", "type": "text", "required": true, "src": "ع: طلب اكتتاب /21/ /47/"},
+        {"name": "رمز المستثمر", "type": "text", "required": true, "src": "ع: إلغاء اكتتاب، ورقة4"},
+        {"name": "تاريخ الاكتتاب", "type": "date", "required": true, "src": "ع: تاريخ الاكتتاب"},
+        {"name": "الإطار القانوني", "type": "list", "required": false, "list": "legal_framework", "desc": "قانون 21، القانون 47، قوانين الاستثمار (10، 8، 18)…", "src": "ع: إحصائيات الرخص"},
+        {"name": "الصناعة المطلوبة", "type": "list", "required": false, "list": "industry_category", "src": "ع: ورقة4"},
+        {"name": "المساحة المطلوبة م2", "type": "number", "required": false, "src": "ع: ورقة4"},
+        {"name": "حالة الطلب", "type": "list", "required": true, "list": "subscription_status", "desc": "قيد الدراسة، تحوّل إلى تخصيص، منسحب، ملغى", "src": "ع: إلغاء اكتتاب"},
+        {"name": "رقم قرار الإلغاء / الانسحاب", "type": "text", "required": false, "src": "ع: قرار الإلغاء"},
+        {"name": "تاريخ الإلغاء", "type": "date", "required": false, "src": "ع: تاريخ الإلغاء"},
+        {"name": "ملاحظات", "type": "text", "required": false, "src": "—"}
+      ]
+    },
+    {
+      "id": "decisions", "num": 5, "name": "سجل القرارات",
+      "purpose": "كل قرار رسمي يُشار إليه في أي جدول (تخصيص، إلغاء، ترخيص…) يُسجَّل مرة واحدة هنا.",
+      "row": "قرار واحد.", "key": ["المدينة", "الرقم الرسمي", "رمز الجهة", "التاريخ"],
+      "note": "باقي الجداول تشير إلى القرار عبر (الرقم + الجهة + التاريخ) بدل نسخ تفاصيله.",
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "جديد"},
+        {"name": "الرقم الرسمي", "type": "text", "required": true, "desc": "الرقم فقط", "src": "ح، ع: قرار التخصيص، رقم القرار الصناعي"},
+        {"name": "رمز الجهة", "type": "list", "required": false, "list": "authority_code", "desc": "الحروف الملحقة بالرقم (ن، ق، م.ح، ص.ح، ش…)", "src": "ح، ع: داخل رقم القرار"},
+        {"name": "الجهة المصدرة", "type": "list", "required": false, "list": "issuing_authority", "desc": "مجلس المدينة، الوزارة، المحافظ، دائرة التراخيص…", "src": "ح: مصدر الترخيص الصناعي"},
+        {"name": "نوع القرار", "type": "list", "required": true, "list": "decision_type", "desc": "تخصيص، إلغاء، تعديل، ترخيص، طي إلغاء، دمج…", "src": "جديد"},
+        {"name": "الرقم التسلسلي الداخلي", "type": "text", "required": false, "desc": "مثل (قرار 1، قرار 105) إن كان ترقيماً داخلياً", "src": "ع: العمود (م) بجانب قرار التخصيص"},
+        {"name": "تاريخ القرار", "type": "date", "required": true, "src": "ح، ع"},
+        {"name": "السند القانوني", "type": "list", "required": false, "list": "legal_basis", "desc": "قانون 21، مرسوم 8، قانون 18…", "src": "ح: نوع القرار الصناعي"},
+        {"name": "ملاحظات", "type": "text", "required": false, "src": "—"}
+      ]
+    },
+    {
+      "id": "allocations", "num": 6, "name": "التخصيصات",
+      "purpose": "القلب: ربط مستثمر بمقسم أو أكثر بقرار تخصيص.",
+      "row": "تخصيص واحد (إضبارة واحدة).", "key": ["المدينة", "رقم الإضبارة (يحتاج تأكيداً، انظر الأسئلة)"],
+      "note": "عدد المقاسم وعدد المستثمرين لا يُكتبان، بل يُحسبان.",
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "جديد"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "ح، ع: رقم الاضبارة"},
+        {"name": "الرقم التسلسلي", "type": "text", "required": false, "desc": "الترتيب في السجل الأصلي", "src": "ع: تسلسل، ترتيب / ح: ID"},
+        {"name": "رمز المستثمر", "type": "text", "required": true, "src": "ح، ع: الاسم"},
+        {"name": "رقم طلب الاكتتاب", "type": "text", "required": false, "desc": "إن وجد", "src": "جديد"},
+        {"name": "الفئة الصناعية", "type": "list", "required": true, "list": "industry_category", "desc": "هندسية، كيميائية، غذائية، نسيجية، مواد بناء، دباغات، مستودعات…", "src": "ح: فئة الصناعة / ع: الصناعة"},
+        {"name": "درجة الصناعة", "type": "list", "required": false, "list": "industry_grade", "desc": "(1)، (2)، (3) أو صغيرة، متوسطة، كبيرة", "src": "ح: أهمية الصناعة / ع: الرقم بين قوسين"},
+        {"name": "نوع الصناعة", "type": "list", "required": false, "list": "industry_type", "desc": "التصنيف الفرعي (أدوية بيطرية، أعلاف…)", "src": "ح: النشاط الصناعي"},
+        {"name": "وصف النشاط", "type": "text", "required": true, "desc": "الوصف الحر للصناعة", "src": "ح: نوع الصناعة"},
+        {"name": "المساحة الإجمالية م2", "type": "number", "required": true, "src": "ح: المساحة / ع: المساحة"},
+        {"name": "قرار التخصيص", "type": "text", "required": true, "desc": "إشارة إلى سجل القرارات", "src": "ح: رقم التخصص / ع: قرار التخصيص"},
+        {"name": "تاريخ التخصيص", "type": "date", "required": true, "desc": "تاريخ واحد", "src": "ح: تاريخ التخصص / ع: تاريخ التخصيص"},
+        {"name": "السند القانوني", "type": "list", "required": false, "list": "legal_basis", "src": "ح: نوع القرار الصناعي"},
+        {"name": "الحالة الحالية", "type": "list", "required": true, "list": "allocation_status", "desc": "فعّال، ملغى، منقول ملكية، مدموج…", "src": "ح: شيتات المفصولين / ع: بلاك"},
+        {"name": "الوضع التشغيلي", "type": "list", "required": false, "list": "operational", "desc": "مباشر، غير مباشر، ترخيص إداري، ترخيص إداري مؤقت، حكومي جاهز…", "src": "ح: الوضع الحالي للمقسم"},
+        {"name": "تمت التسوية", "type": "bool", "required": false, "src": "ع: تمت التسوية"},
+        {"name": "حالة التدقيق", "type": "list", "required": false, "list": "audit_status", "src": "ع: حد فاصل للتدقيق"},
+        {"name": "ملاحظات", "type": "text", "required": false, "src": "ح، ع: ملاحظات"}
+      ]
+    },
+    {
+      "id": "allocation_plots", "num": 7, "name": "مقاسم التخصيص",
+      "purpose": "ربط التخصيص بالمقاسم. هنا يُفكّك (578+777) إلى سطرين.",
+      "row": "مقسم واحد ضمن تخصيص واحد.", "key": ["المدينة", "رقم الإضبارة", "رقم المقسم"],
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "جديد"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "—"},
+        {"name": "رقم المقسم الموحد", "type": "text", "required": true, "src": "ح، ع: المقسم"},
+        {"name": "المساحة المخصصة من المقسم م2", "type": "number", "required": false, "desc": "إذا كان التخصيص جزءاً من المقسم", "src": "ح: المساحة المؤجرة/ع: مساحة"},
+        {"name": "تاريخ الإضافة", "type": "date", "required": false, "desc": "عند الدمج أو التبديل", "src": "ع: دمج مقاسم 2026"},
+        {"name": "تاريخ الإزالة", "type": "date", "required": false, "desc": "عند الفصل أو التبديل", "src": "ع: تبديل مقسم"}
+      ]
+    },
+    {
+      "id": "decision_refs", "num": 8, "name": "مراجع القرارات (الحيثية)",
+      "purpose": "القرارات السابقة التي يستند إليها تخصيص أو حدث.",
+      "row": "مرجع واحد.", "key": ["نوع السجل", "مفتاحه", "القرار المرجعي"],
+      "note": "يحل مشكلة خانة (حيثية) التي تحمل عدة قرارات مفصولة بـ +.",
+      "fields": [
+        {"name": "نوع السجل", "type": "list", "required": true, "list": "ref_record_type", "desc": "تخصيص، حدث، ترخيص", "src": "جديد"},
+        {"name": "مفتاح السجل", "type": "text", "required": true, "desc": "رقم الإضبارة أو رقم الحدث", "src": "—"},
+        {"name": "القرار المرجعي", "type": "text", "required": true, "desc": "إشارة إلى سجل القرارات", "src": "ع: حيثية (قرار3+قرار42)"},
+        {"name": "نوع العلاقة", "type": "list", "required": false, "list": "ref_relation", "desc": "يستند إلى، يعدّل، يلغي", "src": "جديد"}
+      ]
+    },
+    {
+      "id": "events", "num": 9, "name": "الأحداث",
+      "purpose": "كل ما يحدث للتخصيص بعد إنشائه. لا يُحذف أي سجل: كل تغيير حدث جديد.",
+      "row": "حدث واحد.", "key": ["المدينة", "رقم الإضبارة", "نوع الحدث", "التاريخ"],
+      "note": "الشيتات المنفصلة الحالية (المفصولين، بلاك، طلبات الطي، المباعة، الدمج) كلها تصبح سطوراً في هذا الجدول.",
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "جديد"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "—"},
+        {"name": "رقم المقسم", "type": "text", "required": false, "desc": "إذا خص الحدث مقسماً بعينه", "src": "—"},
+        {"name": "نوع الحدث", "type": "list", "required": true, "list": "event_type", "desc": "إلغاء تخصيص، طلب طي إلغاء، طي إلغاء، نقل ملكية كامل، نقل ملكية جزئي، دمج، فصل، تبديل مقسم، إعادة تخصيص، إضافة/تعديل صناعة، تعديل شركاء، طلب استرداد أموال، انسحاب", "src": "ح: نوع التعديل / ع: بلاك، طلبات طي، مقاسم مباعة، دمج"},
+        {"name": "رقم القرار / الوثيقة", "type": "text", "required": true, "desc": "إشارة إلى سجل القرارات", "src": "ح: رقم الوثيقة المعدلة / ع: قرار الإلغاء"},
+        {"name": "تاريخ الحدث", "type": "date", "required": true, "src": "ح: تاريخ التعديل، تاريخ إلغاء التخصص / ع: تاريخ الإلغاء"},
+        {"name": "تاريخ تقديم الطلب", "type": "date", "required": false, "desc": "للأحداث التي تبدأ بطلب", "src": "ع: ملاحظات طلبات الطي"},
+        {"name": "رقم الطلب الوارد", "type": "text", "required": false, "desc": "مثل رقم طلب الاسترداد", "src": "ع: ملاحظات"},
+        {"name": "حالة الطلب", "type": "list", "required": false, "list": "request_status", "desc": "مقدم، مقبول، مرفوض", "src": "جديد"},
+        {"name": "المستثمر السابق", "type": "text", "required": false, "desc": "للبيع ونقل الملكية", "src": "ع: البائع"},
+        {"name": "المستثمر الجديد", "type": "text", "required": false, "src": "ع: الشاري"},
+        {"name": "النسبة المنقولة %", "type": "number", "required": false, "src": "ع: النسبة المباعة"},
+        {"name": "القيمة المعدّلة", "type": "text", "required": false, "desc": "ما الذي تغيّر (الصناعة الجديدة، الاسم الجديد…)", "src": "ح: المعدل"},
+        {"name": "يُحتسب في الإحصاء", "type": "bool", "required": false, "src": "ع: لايحسب تبديل مقسم"},
+        {"name": "التفاصيل", "type": "text", "required": false, "src": "ح، ع: ملاحظات"}
+      ]
+    },
+    {
+      "id": "project", "num": 10, "name": "بيانات المشروع",
+      "purpose": "المؤشرات التشغيلية والاقتصادية للمنشأة. تُحدَّث دورياً مع تاريخ التحديث.",
+      "row": "تحديث واحد لتخصيص واحد.", "key": ["المدينة", "رقم الإضبارة", "تاريخ التحديث"],
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "—"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "—"},
+        {"name": "تاريخ التحديث", "type": "date", "required": true, "src": "جديد"},
+        {"name": "رأس المال", "type": "number", "required": false, "src": "ح: رأس المال (مليون)"},
+        {"name": "وحدة رأس المال", "type": "list", "required": false, "list": "capital_unit", "desc": "ل.س، مليون ل.س، USD", "src": "ح"},
+        {"name": "رأس المال بالدولار", "type": "number", "required": false, "src": "ح: رأسمال المشروع بالدولار"},
+        {"name": "القيمة التقديرية للمشروع", "type": "number", "required": false, "src": "ع: قانون 18"},
+        {"name": "قيمة الآلات", "type": "number", "required": false, "src": "ح: قيمة الآلات"},
+        {"name": "الكهرباء kVA", "type": "number", "required": false, "src": "ح: الكهرباء"},
+        {"name": "مجموع القوى المحركة", "type": "number", "required": false, "desc": "مع الوحدة", "src": "ع: متفرقات هام"},
+        {"name": "المياه م3/سنة", "type": "number", "required": false, "src": "ح: كمية المياه المطلوبة"},
+        {"name": "عدد العمال الفعلي", "type": "number", "required": false, "src": "ح: عدد العمال / ع: متفرقات هام"},
+        {"name": "فرص العمل المتوقعة", "type": "number", "required": false, "src": "ع: عدد فرص العمل المتوقعة/الفعلية"},
+        {"name": "مساحة المنشأة المبنية م2", "type": "number", "required": false, "src": "ع: مساحة المنشأة"},
+        {"name": "نسبة تنفيذ البناء %", "type": "number", "required": false, "src": "ع: نسبة تنفيذ البناء"}
+      ]
+    },
+    {
+      "id": "production", "num": 11, "name": "الطاقة الإنتاجية",
+      "purpose": "المنتجات وكمياتها.",
+      "row": "منتج واحد لتخصيص واحد.", "key": ["رقم الإضبارة", "المنتج"],
+      "note": "يحل مشكلة (310كغ بودرة 510ليتر سوائل) في خانة واحدة.",
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "—"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "—"},
+        {"name": "المنتج", "type": "text", "required": true, "src": "ح: الطاقة الإنتاجية اليومية"},
+        {"name": "الكمية", "type": "number", "required": true, "src": "ح"},
+        {"name": "الوحدة", "type": "list", "required": true, "list": "prod_unit", "desc": "طن، كغ، لتر، م3، قطعة…", "src": "ح"},
+        {"name": "الفترة", "type": "list", "required": true, "list": "period", "desc": "يومي، سنوي", "src": "ح"}
+      ]
+    },
+    {
+      "id": "industrial_licenses", "num": 12, "name": "التراخيص الصناعية",
+      "purpose": "القرار الصناعي وتعديلاته.",
+      "row": "ترخيص أو تعديل واحد.", "key": ["المدينة", "رقم الإضبارة", "رقم القرار"],
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "—"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "—"},
+        {"name": "رقم القرار الصناعي", "type": "text", "required": true, "src": "ح: رقم القرار الصناعي"},
+        {"name": "تاريخ القرار", "type": "date", "required": true, "src": "ح: تاريخ القرار الصناعي"},
+        {"name": "السند القانوني", "type": "list", "required": false, "list": "legal_basis", "desc": "قانون 21، مرسوم 8…", "src": "ح: نوع القرار الصناعي"},
+        {"name": "الجهة المصدرة", "type": "list", "required": false, "list": "issuing_authority", "src": "ح: مصدر الترخيص الصناعي"},
+        {"name": "الصناعة المرخصة", "type": "text", "required": false, "src": "ح"},
+        {"name": "يعدّل الترخيص رقم", "type": "text", "required": false, "desc": "للتعديلات", "src": "ح: تعديلات الترخيص الصناعي"}
+      ]
+    },
+    {
+      "id": "building_licenses", "num": 13, "name": "رخص البناء",
+      "row": "رخصة أو تجديد واحد.", "key": ["المدينة", "رقم الإضبارة", "رقم الرخصة"],
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "—"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "—"},
+        {"name": "رقم رخصة البناء", "type": "text", "required": true, "src": "ح: رقم رخصة البناء / ع: رقم الرخصة"},
+        {"name": "تاريخ الرخصة", "type": "date", "required": true, "desc": "تاريخ واحد؛ التجديد سطر جديد", "src": "ح: تاريخ رخصة البناء (فيها تاريخان أحياناً)"},
+        {"name": "نوع", "type": "list", "required": false, "list": "bldg_type", "desc": "أصلية، تجديد، تعديل", "src": "جديد"},
+        {"name": "المساحة المرخصة م2", "type": "number", "required": false, "src": "ح: المساحة المرخصة"},
+        {"name": "حالة الترخيص", "type": "list", "required": true, "list": "bldg_status", "desc": "مرخص، غير مرخص", "src": "ح: الوضع من حيث ترخيص البناء"}
+      ]
+    },
+    {
+      "id": "admin_licenses", "num": 14, "name": "التراخيص الإدارية",
+      "purpose": "ترخيص بدء العمل.",
+      "row": "ترخيص إداري واحد.", "key": ["المدينة", "رقم الترخيص"],
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "—"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "—"},
+        {"name": "رقم الرخصة الإدارية", "type": "text", "required": true, "src": "ع: رقم الرخصة الإدارية"},
+        {"name": "رقم القرار", "type": "text", "required": false, "src": "ح: رقم قرار الترخيص الإداري / ع: رقم القرار"},
+        {"name": "تاريخ الترخيص", "type": "date", "required": true, "src": "ح، ع"},
+        {"name": "المدة", "type": "list", "required": true, "list": "admin_duration", "desc": "دائم، مؤقت", "src": "ح: نوع الترخيص من حيث المدة / ع: نوع الترخيص"},
+        {"name": "تاريخ الانتهاء", "type": "date", "required": false, "desc": "للمؤقت", "src": "ح: تاريخ انتهاء الترخيص المؤقت"},
+        {"name": "النطاق", "type": "list", "required": false, "list": "admin_scope", "desc": "كلي، جزئي", "src": "ح: نوع الترخيص الإداري من حيث الصناعة"},
+        {"name": "صاحب الترخيص", "type": "list", "required": false, "list": "license_holder", "desc": "المستثمر، المستأجر", "src": "ح: الوضع الحالي (…للمستأجر…)"},
+        {"name": "رمز المستأجر", "type": "text", "required": false, "desc": "إن كان باسم مستأجر", "src": "ح"},
+        {"name": "تفصيل الصناعة", "type": "text", "required": false, "src": "ع: تفصيل الصناعة"},
+        {"name": "الفئة", "type": "list", "required": false, "list": "admin_category", "src": "ع: الفئة"}
+      ]
+    },
+    {
+      "id": "contracts", "num": 15, "name": "العقود (البيع)",
+      "purpose": "عقد البيع من المدينة للمستثمر، وعقود البيع بين المستثمرين.",
+      "row": "عقد واحد.", "key": ["المدينة", "رقم العقد", "تاريخه"],
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "—"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "—"},
+        {"name": "نوع العقد", "type": "list", "required": true, "list": "contract_type", "desc": "بيع من المدينة، بيع بين مستثمرين", "src": "ح: عقد بيع / ع: مقاسم مباعة"},
+        {"name": "رقم العقد", "type": "text", "required": true, "src": "ح: رقم عقد البيع / ع: العقد"},
+        {"name": "تاريخ العقد", "type": "date", "required": true, "src": "ح، ع"},
+        {"name": "القيمة", "type": "number", "required": false, "src": "ح: قيمة العقد $"},
+        {"name": "العملة", "type": "list", "required": false, "list": "currency", "src": "ح"},
+        {"name": "البائع", "type": "text", "required": false, "desc": "رمز مستثمر أو (المدينة)", "src": "ع: البائع"},
+        {"name": "الشاري", "type": "text", "required": false, "src": "ع: الشاري"},
+        {"name": "النسبة المباعة %", "type": "number", "required": false, "desc": "الكامل = 100", "src": "ع: النسبة المباعة"},
+        {"name": "الرسوم", "type": "text", "required": false, "src": "ع: لايوجد رسم محلي"},
+        {"name": "تاريخ استلام العقد", "type": "date", "required": false, "src": "ع: استلم العقد (سكنية)"}
+      ]
+    },
+    {
+      "id": "financial", "num": 16, "name": "الوضع المالي",
+      "purpose": "سعر الأرض والتزامات المستثمر.",
+      "row": "تخصيص واحد.", "key": ["المدينة", "رقم الإضبارة"],
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "—"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "—"},
+        {"name": "سعر المتر", "type": "number", "required": false, "src": "ح: سعر المتر / ع: السعر"},
+        {"name": "العملة", "type": "list", "required": false, "list": "currency", "src": "—"},
+        {"name": "نوع السعر", "type": "list", "required": false, "list": "price_type", "desc": "مبدئي، نهائي، بدون بدل", "src": "ح: الحالة المالية / ع: بدون بدل دون مقابل"},
+        {"name": "القيمة الإجمالية", "type": "number", "required": false, "src": "ع: قيمة مالية تقديرية"},
+        {"name": "الدفعة الأولى", "type": "number", "required": false, "src": "ح: الدفعة الأولى، الثلث"},
+        {"name": "نظام الدفع", "type": "list", "required": false, "list": "payment_system", "src": "ح: اقساط ارض (انتقال)"},
+        {"name": "حالة أقساط الأرض", "type": "list", "required": false, "list": "land_inst_status", "src": "ح: الحالة المالية من حيث أقساط الأرض"},
+        {"name": "حالة فرق السعر", "type": "list", "required": false, "list": "price_diff_status", "src": "ح: الحالة المالية من حيث فرق السعر"},
+        {"name": "قيمة فرق السعر", "type": "number", "required": false, "src": "ح: الوضع المالي / فرق السعر"}
+      ]
+    },
+    {
+      "id": "installments", "num": 17, "name": "الأقساط",
+      "row": "قسط واحد.", "key": ["المدينة", "رقم الإضبارة", "نوع القسط", "رقم القسط"],
+      "note": "يلغي 42 عموداً (14 قسطاً × 3) في الشيت الحالي.",
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "—"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "—"},
+        {"name": "نوع القسط", "type": "list", "required": true, "list": "installment_type", "desc": "قسط أرض، فرق سعر", "src": "جديد"},
+        {"name": "رقم القسط", "type": "number", "required": true, "desc": "0 = الدفعة الأولى", "src": "ح: القسط 1…14"},
+        {"name": "المبلغ المستحق", "type": "number", "required": true, "src": "ح: القسط n"},
+        {"name": "العملة", "type": "list", "required": true, "list": "currency", "src": "—"},
+        {"name": "تاريخ الاستحقاق", "type": "date", "required": true, "src": "ح: تاريخ استحقاق القسط n"},
+        {"name": "تاريخ الدفع", "type": "date", "required": false, "desc": "فارغ = غير مدفوع", "src": "ح: تاريخ دفع القسط"},
+        {"name": "المبلغ المدفوع", "type": "number", "required": false, "src": "ح: تاريخ دفع القسط وقيمته"},
+        {"name": "رقم الإيصال", "type": "text", "required": false, "src": "جديد"}
+      ]
+    },
+    {
+      "id": "leases", "num": 18, "name": "الإيجارات",
+      "purpose": "تأجير المستثمر لجزء من منشأته.",
+      "row": "عقد إيجار واحد.", "key": ["المدينة", "رقم الإضبارة", "رقم عقد الإيجار"],
+      "note": "(مستأجرين مساحات كبيرة) يُحسب من المساحة المؤجرة بعد تحديد العتبة.",
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "—"},
+        {"name": "رقم الإضبارة (المؤجر)", "type": "text", "required": true, "src": "—"},
+        {"name": "اسم المستأجر", "type": "text", "required": true, "desc": "أو رمز مستثمر إن كان مسجلاً", "src": "ح: اسم المستأجر"},
+        {"name": "هاتف المستأجر", "type": "text", "required": false, "src": "ح: رقم هاتف المستأجر"},
+        {"name": "رقم عقد الإيجار", "type": "text", "required": true, "src": "ح"},
+        {"name": "تاريخ العقد", "type": "date", "required": true, "src": "ح"},
+        {"name": "المساحة المؤجرة م2", "type": "number", "required": false, "src": "ح"},
+        {"name": "مدة العقد (أشهر)", "type": "number", "required": false, "src": "ح: مدة عقد الإيجار"},
+        {"name": "تاريخ الانتهاء", "type": "date", "required": false, "src": "جديد"},
+        {"name": "الصناعة حسب العقد", "type": "text", "required": false, "src": "ح: الصناعة وفقاً لعقد الإيجار"}
+      ]
+    },
+    {
+      "id": "investment_licenses", "num": 19, "name": "الإجازات الاستثمارية",
+      "purpose": "المشاريع المشمولة بقوانين الاستثمار.",
+      "row": "إجازة واحدة.", "key": ["رقم الإجازة"],
+      "note": "القيمة التقديرية وفرص العمل ونسبة التنفيذ في جدول (بيانات المشروع).",
+      "fields": [
+        {"name": "المدينة", "type": "list", "required": true, "list": "cities", "src": "—"},
+        {"name": "رقم الإضبارة", "type": "text", "required": true, "src": "—"},
+        {"name": "رقم إجازة الاستثمار", "type": "text", "required": true, "src": "ع: رقم إجازة الاستثمار"},
+        {"name": "تاريخ الإجازة", "type": "date", "required": true, "src": "ع: تاريخها"},
+        {"name": "القانون", "type": "list", "required": true, "list": "laws", "desc": "قانون 18…", "src": "ع: قانون 18"},
+        {"name": "اسم المشروع", "type": "text", "required": true, "src": "ع: اسم المشروع"},
+        {"name": "مستفيد من القانون", "type": "bool", "required": false, "src": "ع: غير مستفيد قانون 18"}
+      ]
+    }
+  ],
+  "lists": {
+    "cities": {"name": "المدن", "values": ["عدرا", "حسياء", "الشيخ نجار", "دير الزور"], "open": true},
+    "sectors": {"name": "المناطق / القطاعات", "values": [], "perCity": true, "note": "قائمة خاصة بكل مدينة"},
+    "phases": {"name": "المراحل الجغرافية", "values": [], "perCity": true, "note": "قائمة خاصة بكل مدينة"},
+    "plot_class": {"name": "تصنيف المقسم", "values": ["صناعي", "استعمالات خاصة", "مشيدات عامة", "خدمي تجاري", "إداري", "سكني", "مستودعات", "حرفي"], "open": true},
+    "facility_category": {"name": "فئة المشيدات", "values": ["فئة (ب)", "فئة (د)"], "open": true},
+    "service": {"name": "حالة الخدمة", "values": ["مخدم", "غير مخدم", "مخدم جزئياً"]},
+    "voltage": {"name": "التوتر الكهربائي", "values": ["منخفض", "متوسط"]},
+    "investor_type": {"name": "نوع المستثمر", "values": ["شخص طبيعي", "شركة", "جهة عامة"]},
+    "legal_form": {"name": "الشكل القانوني", "values": ["فردي", "تضامنية", "محدودة المسؤولية", "مساهمة مغفلة", "قيد التأسيس"], "open": true},
+    "gender": {"name": "الجنس", "values": ["ذكر", "أنثى"]},
+    "nationality": {"name": "الجنسيات", "values": [], "fromData": true, "note": "موحدة — القيم الحالية مأخوذة من الملفات"},
+    "doc_type": {"name": "نوع الوثيقة", "values": ["هوية", "جواز سفر"]},
+    "partner_role": {"name": "الصفة", "values": ["مالك", "شريك", "مفوض بالتوقيع"]},
+    "legal_framework": {"name": "الإطار القانوني", "values": ["قانون 21", "القانون 47", "قانون 10", "مرسوم 8", "قانون 18"], "open": true},
+    "subscription_status": {"name": "حالة طلب الاكتتاب", "values": ["قيد الدراسة", "تحوّل إلى تخصيص", "منسحب", "ملغى"]},
+    "authority_code": {"name": "رموز الجهات", "values": ["ن", "ق", "م.ح", "ص.ح", "ش"], "open": true},
+    "issuing_authority": {"name": "الجهات المصدرة", "values": ["مجلس المدينة", "الوزارة", "المحافظ", "دائرة التراخيص"], "open": true},
+    "decision_type": {"name": "نوع القرار", "values": ["تخصيص", "إلغاء", "تعديل", "ترخيص", "طي إلغاء", "دمج"], "open": true},
+    "legal_basis": {"name": "السندات القانونية", "values": ["قانون 21", "مرسوم 8", "قانون 18", "القانون 47"], "open": true},
+    "ref_record_type": {"name": "نوع السجل", "values": ["تخصيص", "حدث", "ترخيص"]},
+    "ref_relation": {"name": "نوع العلاقة", "values": ["يستند إلى", "يعدّل", "يلغي"]},
+    "industry_category": {"name": "الفئات الصناعية", "values": ["هندسية", "كيميائية", "غذائية", "نسيجية", "مواد بناء", "دباغات", "مستودعات"], "open": true, "note": "موحدة على مستوى الوزارة"},
+    "industry_grade": {"name": "درجات الصناعة", "values": ["(1)", "(2)", "(3)", "صغيرة", "متوسطة", "كبيرة"]},
+    "industry_type": {"name": "نوع الصناعة (التصنيف الفرعي)", "values": [], "fromData": true, "open": true},
+    "allocation_status": {"name": "حالات التخصيص", "values": ["فعّال", "ملغى", "منقول ملكية", "مدموج"], "open": true, "pending": true, "note": "تُعتمد في الاجتماع"},
+    "operational": {"name": "الوضع التشغيلي", "values": ["مباشر", "غير مباشر", "ترخيص إداري", "ترخيص إداري مؤقت", "حكومي جاهز"], "open": true, "pending": true, "note": "تُعتمد في الاجتماع"},
+    "audit_status": {"name": "حالة التدقيق", "values": [], "pending": true, "note": "قيد التحديد — لا قيم معتمدة في الهيكل"},
+    "event_type": {"name": "أنواع الأحداث", "values": ["إلغاء تخصيص", "طلب طي إلغاء", "طي إلغاء", "نقل ملكية كامل", "نقل ملكية جزئي", "دمج", "فصل", "تبديل مقسم", "إعادة تخصيص", "إضافة/تعديل صناعة", "تعديل شركاء", "طلب استرداد أموال", "انسحاب"]},
+    "request_status": {"name": "حالة الطلب", "values": ["مقدم", "مقبول", "مرفوض"]},
+    "capital_unit": {"name": "وحدة رأس المال", "values": ["ل.س", "مليون ل.س", "USD"]},
+    "prod_unit": {"name": "الوحدات", "values": ["طن", "كغ", "لتر", "م3", "قطعة"], "open": true},
+    "period": {"name": "الفترة", "values": ["يومي", "سنوي"]},
+    "bldg_type": {"name": "نوع رخصة البناء", "values": ["أصلية", "تجديد", "تعديل"]},
+    "bldg_status": {"name": "حالة ترخيص البناء", "values": ["مرخص", "غير مرخص"]},
+    "admin_duration": {"name": "مدة الترخيص الإداري", "values": ["دائم", "مؤقت"]},
+    "admin_scope": {"name": "نطاق الترخيص الإداري", "values": ["كلي", "جزئي"]},
+    "license_holder": {"name": "صاحب الترخيص", "values": ["المستثمر", "المستأجر"]},
+    "admin_category": {"name": "فئة الترخيص الإداري", "values": [], "fromData": true, "pending": true, "note": "قيد التحديد — القيم الحالية من الملفات"},
+    "contract_type": {"name": "نوع العقد", "values": ["بيع من المدينة", "بيع بين مستثمرين"]},
+    "currency": {"name": "العملات", "values": ["ل.س", "USD"], "note": "موحدة"},
+    "price_type": {"name": "نوع السعر", "values": ["مبدئي", "نهائي", "بدون بدل"]},
+    "payment_system": {"name": "نظام الدفع", "values": [], "fromData": true, "pending": true, "note": "قيد التحديد — (انتقال) سؤال مفتوح"},
+    "land_inst_status": {"name": "حالة أقساط الأرض", "values": [], "fromData": true, "pending": true, "note": "قيد التحديد — القيم الحالية من الملفات"},
+    "price_diff_status": {"name": "حالة فرق السعر", "values": [], "fromData": true, "pending": true, "note": "قيد التحديد — القيم الحالية من الملفات"},
+    "installment_type": {"name": "نوع القسط", "values": ["قسط أرض", "فرق سعر"]},
+    "laws": {"name": "القوانين", "values": ["قانون 18"], "open": true}
+  }
+}

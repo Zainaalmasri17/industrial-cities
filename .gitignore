@@ -1,0 +1,10 @@
+node_modules
+dist
+*.tsbuildinfo
+*.tar.gz
+__pycache__/
+# ملفات المدن الأصلية (بيانات المستثمرين) لا تُرفع
+*.xlsx
+*.xls
+*.pdf
+~$*
