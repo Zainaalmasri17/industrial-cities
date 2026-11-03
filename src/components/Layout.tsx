@@ -49,13 +49,13 @@ function readCity(): MFilter {
   return 'الكل'
 }
 
-export function CitySwitch({ city, setCity }: { city: MFilter; setCity: (c: MFilter) => void }) {
+export function CitySwitch({ city, setCity, light, className }: { city: MFilter; setCity: (c: MFilter) => void; light?: boolean; className?: string }) {
   return (
-    <div className="inline-flex flex-wrap rounded-full border border-gold-500/40 bg-white/5 p-1" role="radiogroup" aria-label="المدينة">
+    <div className={cls('inline-flex rounded-full border p-1', light ? 'border-[var(--border)] bg-white shadow-sm' : 'flex-wrap border-gold-500/40 bg-white/5', className)} role="radiogroup" aria-label="المدينة">
       {(['الكل', ...M_CITIES] as MFilter[]).map((o) => (
         <button key={o} role="radio" aria-checked={city === o} onClick={() => setCity(o)}
-          className={cls('rounded-full px-3 py-1 text-[13px] font-bold transition',
-            city === o ? 'bg-gradient-to-l from-gold-300 to-gold-500 text-brand-900 shadow' : 'text-[#f7f3e8]/85 hover:bg-white/10')}>
+          className={cls('shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-[13px] font-bold transition',
+            city === o ? 'bg-gradient-to-l from-gold-300 to-gold-500 text-brand-900 shadow' : light ? 'text-brand-700 hover:bg-gold-100' : 'text-[#f7f3e8]/85 hover:bg-white/10')}>
           {o === 'الكل' ? 'كل المدن' : o}
         </button>
       ))}
@@ -64,8 +64,11 @@ export function CitySwitch({ city, setCity }: { city: MFilter; setCity: (c: MFil
 }
 
 export function Layout() {
-  const [open, setOpen] = useState(() => localStorage.getItem('ic-sidebar') !== '0')
-  const toggle = () => setOpen((o) => { localStorage.setItem('ic-sidebar', o ? '0' : '1'); return !o })
+  // على الموبايل القائمة تفتح فوق المحتوى وتبدأ مغلقة
+  const isMobile = () => window.matchMedia('(max-width: 1023px)').matches
+  const [open, setOpen] = useState(() => !isMobile() && localStorage.getItem('ic-sidebar') !== '0')
+  const toggle = () => setOpen((o) => { if (!isMobile()) localStorage.setItem('ic-sidebar', o ? '0' : '1'); return !o })
+  const closeOnMobile = () => { if (isMobile()) setOpen(false) }
   const [city, setCityState] = useState<MFilter>(readCity)
   const setCity = (c: MFilter) => {
     setCityState(c)
@@ -77,21 +80,22 @@ export function Layout() {
       <div style={{ paddingTop: 'var(--header-h)' }}>
         <header className="site-header">
           <div className="header-overlay" aria-hidden="true" />
-          <div className="relative z-10 flex w-full items-center gap-4">
+          <div className="relative z-10 flex w-full min-w-0 items-center gap-3 lg:gap-4">
             <button className="sidebar-toggle shrink-0" onClick={toggle} aria-label={open ? 'إغلاق القائمة' : 'فتح القائمة'}>
               {open ? <X size={22} /> : <Menu size={22} />}
             </button>
-            <img src="/header-logo-ar.png" alt="وزارة الاقتصاد والصناعة" className="h-11 w-auto" />
+            <img src="/header-logo-ar.png" alt="وزارة الصناعة والتجارة الداخلية" className="h-9 w-auto min-w-0 max-w-[calc(100%-56px)] object-contain object-right sm:h-11" />
             <div className="hidden border-r border-gold-500/30 pr-4 lg:block">
               <div className="text-[15px] font-extrabold leading-tight text-[#f7f3e8]">نظام بيانات المدن الصناعية</div>
               <div className="text-[11px] font-bold text-gold-500">بيانات شهر {MONTH_LABEL}</div>
             </div>
             <span className="flex-1" />
-            <CitySwitch city={city} setCity={setCity} />
+            <div className="hidden lg:block"><CitySwitch city={city} setCity={setCity} /></div>
           </div>
         </header>
 
         <div className={cls('app-shell flex items-stretch', open ? 'sidebar-open' : 'sidebar-closed')}>
+          {open && <div className="sidebar-backdrop lg:hidden" onClick={toggle} aria-hidden="true" />}
           <aside className="app-sidebar" aria-label="القائمة الجانبية">
             <div className="flex items-center gap-3 border-b border-gold-500/20 px-1.5 pb-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-gold-300 to-gold-500 text-lg font-black text-brand-900 shadow-lg">م</div>
@@ -105,7 +109,7 @@ export function Layout() {
                 <div key={g.group || 'main'} className="flex flex-col gap-0.5">
                   {g.group && <div className="mb-0.5 px-3 text-[11px] font-bold tracking-wide text-gold-300/80">{g.group}</div>}
                   {g.items.map(({ to, label, icon: Icon }) => (
-                    <NavLink key={to} to={to} end className={({ isActive }) => cls('app-sidebar-link', isActive && 'active')}>
+                    <NavLink key={to} to={to} end onClick={closeOnMobile} className={({ isActive }) => cls('app-sidebar-link', isActive && 'active')}>
                       <Icon size={18} className="shrink-0 opacity-90" />
                       <span className="truncate">{label}</span>
                     </NavLink>
@@ -118,8 +122,11 @@ export function Layout() {
               <span className="mt-1 flex items-center gap-1"><CalendarRange size={12} />عدرا · حسياء · الشيخ نجار · باب الهوى · الراعي</span>
             </div>
           </aside>
-          <main className="min-w-0 flex-1 px-7 py-6">
+          <main className="min-w-0 flex-1 px-3 py-4 sm:px-5 lg:px-7 lg:py-6">
             <div className="mx-auto max-w-[1560px]">
+              <div className="scroll-thin -mx-3 mb-4 overflow-x-auto px-3 lg:hidden">
+                <CitySwitch city={city} setCity={setCity} light />
+              </div>
               <Outlet />
             </div>
           </main>

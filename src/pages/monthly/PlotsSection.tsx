@@ -22,7 +22,7 @@ function PerCity({ title, render, note, wide }: { title: string; render: (s: Plo
 }
 
 /** مقارنة نفس التوزيع بين المدن (أعمدة متجاورة) */
-function compare(cities: MCity[], key: keyof PlotSummary, top = 10) {
+export function compare(cities: MCity[], key: keyof PlotSummary, top = 10) {
   const names = new Map<string, number>()
   for (const c of cities) for (const x of (cityData(c).summary?.[key] as { name: string; value: number }[]) ?? []) names.set(x.name, (names.get(x.name) ?? 0) + x.value)
   const order = [...names.entries()].filter(([n]) => n !== 'غير محدد').sort((a, b) => b[1] - a[1]).slice(0, top).map(([n]) => n)
@@ -72,7 +72,7 @@ function Completeness() {
   )
 }
 
-function YearsChart() {
+export function YearsChart() {
   const { cities } = useMCity()
   const years = [...new Set(cities.flatMap((c) => cityData(c).summary?.allocByYear.map((y) => y.year) ?? []))].sort()
   const data = years.map((y) => ({ year: y, ...Object.fromEntries(cities.map((c) => [c, cityData(c).summary?.allocByYear.find((x) => x.year === y)?.value ?? 0])) }))

@@ -14,7 +14,8 @@ export type NV = { name: string; value: number }
 
 export interface Installments {
   total: number; paid: number; unpaid: number; overdue: number; overduePlots: number; noDue: number
-  paidValue: number; overdueValue: number; notDueValue: number
+  /** القيم حسب عملة المقسم: لا تُجمع الليرة مع الدولار */
+  values: Array<{ currency: string; paid: number; overdue: number; notDue: number }>
   byYear: Array<{ year: string; 'مدفوع': number; 'غير مدفوع': number }>
 }
 

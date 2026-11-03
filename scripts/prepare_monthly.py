@@ -1,5 +1,5 @@
 """
-تحويل قوالب الوزارة الشهرية (الإصدار 1.2) المستلمة من المدن الخمس إلى src/data/monthly.json
+تحويل قوالب الوزارة الشهرية المستلمة من المدن الخمس إلى src/data/monthly.json
 
 لكل مدينة مجلد فيه أربعة ملفات: المقاسم، الاستثمارات، الإنتاجية، الإنجازات والتحديات.
 السكربت لا يصحح البيانات ولا يخمّن: يقرأها كما هي، يحسب المؤشرات، ويسجّل كل مشكلة
@@ -127,7 +127,8 @@ def date_of(v):
         return None, None
     if isinstance(v, dt.datetime):
         if v.year < 1950:
-            return None, 'zero'
+            # 1899-12-30 هو الصفر في إكسل، وما سواه سنة خاطئة (مثل 0206) أو رقم تحوّل لتاريخ
+            return None, 'zero' if dt.date(1899, 12, 30) <= v.date() <= dt.date(1900, 1, 1) else 'old'
         return v.date(), None
     if isinstance(v, dt.date):
         return v, None
@@ -150,6 +151,9 @@ def date_of(v):
     return None, 'invalid'
 
 
+DATE_PROB_NOTE = {'zero': 'تاريخ صفري (00:00:00)', 'old': 'سنة قبل 1950: سنة ناقصة أو رقم تحوّل إلى تاريخ', 'number': 'رقم في خانة تاريخ'}
+
+
 # ───────────────────────── سجل المشاكل ─────────────────────────
 
 ISSUE_DEFS: dict[str, dict] = {}
@@ -163,11 +167,12 @@ def defissue(id, title, desc, severity, fix, template):
 defissue('file_name', 'اسم الملف مخالف للقاعدة', 'القاعدة: اسم المدينة ثم اسم القالب ثم الشهر، مثل عدرا_المقاسم_2026-10.xlsx', 'منخفض', 'إعادة تسمية الملف قبل الإرسال', 'عام')
 defissue('example_row', 'سطر المثال الرمادي لم يُحذف', 'سطر المثال التوضيحي من القالب ما زال موجوداً، ويدخل في الأرقام إن لم يُستبعد. استبعدناه من كل الحسابات.', 'مرتفع', 'حذف السطر 2 من كل شيت قبل الإرسال', 'عام')
 defissue('header_changed', 'تغيير أسماء الأعمدة أو إضافة أعمدة', 'القاعدة 6: لا تُضاف أعمدة ولا تُغيَّر أسماء الأعمدة. التغيير يكسر الربط الآلي بين الملفات.', 'مرتفع', 'العودة للقالب الأصلي ونقل القيم بـ (لصق القيم فقط)', 'عام')
-defissue('old_template', 'نسخة قالب مختلفة', 'الشيت مبني على نسخة أقدم من القالب: فيه أعمدة غير موجودة في الإصدار 1.2 وتنقصه أعمدة منه.', 'مرتفع', 'استخدام الإصدار 1.2 من القالب', 'عام')
+defissue('old_template', 'نسخة قالب مختلفة', 'الشيت مبني على نسخة مختلفة من القالب: فيه أعمدة غير موجودة في قالب الوزارة الحالي وتنقصه أعمدة منه.', 'مرتفع', 'استخدام القالب الحالي من الوزارة', 'عام')
 defissue('empty_rows', 'سطور شبه فارغة', 'سطور فيها اسم المدينة فقط أو قيمة واحدة بلا بيانات فعلية.', 'متوسط', 'حذف السطور الفارغة أو إكمالها', 'عام')
 
 # المقاسم
-defissue('required_missing', 'حقل إلزامي فارغ', 'حقل إلزامي (أو إلزامي عند تحقق شرطه) تُرك فارغاً دون ذكر السبب في عمود الملاحظات.', 'مرتفع', 'تعبئة الحقل أو ذكر سبب النقص في (ملاحظات)', 'المقاسم')
+defissue('required_missing', 'حقل إلزامي فارغ', 'حقل إلزامي في القالب (عنوانه أزرق غامق، أو إلزامي عند تحقق شرطه) تُرك فارغاً دون ذكر السبب في عمود الملاحظات. فئة الصناعة واسم النشاط تُطلب للمقاسم الصناعية المخصصة فقط.', 'مرتفع', 'تعبئة الحقل أو ذكر سبب النقص في (ملاحظات)', 'المقاسم')
+defissue('investor_missing', 'مقسم مخصص ببيانات تخصيص ناقصة', 'المقسم مخصص لكن ينقصه نوع المستثمر أو اسمه أو رقم قرار التخصيص أو تاريخه. هذه الحقول اختيارية في القالب، لكن لا معنى للتخصيص بدونها.', 'متوسط', 'تعبئة بيانات المستثمر وقرار التخصيص', 'المقاسم')
 defissue('placeholder', 'رموز بدل القيمة (ــ، -، _، *)', 'خانات مملوءة بشرطة أو رمز بدل القيمة أو بدل (لا يوجد). لا يمكن التمييز بين (غير موجود) و(غير معروف).', 'متوسط', 'كتابة (لا يوجد) أو ترك الخانة فارغة مع ملاحظة', 'المقاسم')
 defissue('not_in_list', 'قيمة من خارج القائمة المنسدلة', 'القاعدة 3: الأعمدة ذات القوائم تُختار من القائمة فقط. القيم المكتوبة يدوياً لا تُجمع مع غيرها.', 'مرتفع', 'الاختيار من القائمة، ولطلب قيمة جديدة التواصل مع الوزارة', 'المقاسم')
 defissue('extra_spaces', 'مسافات زائدة داخل القيمة', 'قيم من القائمة لكن بمسافة قبلها أو بعدها (مثل « مواد بناء »)، فتُحسب كقيمة مختلفة.', 'منخفض', 'الاختيار من القائمة بدل الكتابة', 'المقاسم')
@@ -193,6 +198,7 @@ defissue('inst_count', 'عدد الأقساط لا يطابق المسجل', 'ع
 defissue('inst_value', 'قيمة قسط فارغة أو صفر', 'قسط بلا قيمة أو بقيمة 0.', 'متوسط', 'إدخال قيمة القسط', 'الأقساط')
 defissue('inst_due', 'قسط بلا تاريخ استحقاق', 'لا يمكن معرفة التأخر بدون تاريخ الاستحقاق.', 'مرتفع', 'إدخال تاريخ الاستحقاق', 'الأقساط')
 defissue('inst_receipt', 'قسط مدفوع بلا إيصال', 'القسط مدفوع (نعم) دون رقم إيصال أو تاريخه.', 'متوسط', 'إدخال رقم الإيصال وتاريخه', 'الأقساط')
+defissue('inst_currency', 'الأقساط لا تتناسب مع قيمة المقسم', 'مجموع أقساط المقسم أكبر من خمسة أضعاف المساحة × سعر المتر، فإما أن الأقساط بعملة غير عملة المقسم (ليرة لمقسم بالدولار) أو أن سعر المتر خاطئ. لا تُجمع قيمها مع أي عملة.', 'مرتفع', 'التحقق من عملة المقسم وقيم الأقساط', 'الأقساط')
 defissue('inst_receipt_dup', 'رقم إيصال مكرر', 'القاعدة 12: رقم الإيصال مع تاريخه لا يتكرر أبداً.', 'مرتفع', 'التحقق من الإيصال', 'الأقساط')
 defissue('inst_orphan', 'قسط لمقسم غير موجود', 'سطر في شيت الأقساط لا يقابله مقسم في شيت المقاسم.', 'مرتفع', 'اختيار المقسم من القائمة', 'الأقساط')
 defissue('prev_missing', 'تخصيص سابق بلا سجل', 'اختير (نعم) في (هل خُصص المقسم لمستثمر سابقاً؟) دون سطر في شيت التخصيصات السابقة.', 'متوسط', 'إضافة المستثمر السابق', 'الأقساط')
@@ -378,6 +384,13 @@ PHASE_BUCKET = {
     'مخصص': 'مخصص', 'مخصص وحاصل على ترخيص بناء': 'مخصص', 'مخصص وحاصل على ترخيص إداري': 'مخصص',
     'مباشر بناء': 'مخصص', 'غير مباشر بناء': 'مخصص', 'مشغل دون ترخيص': 'مخصص',
 }
+# أعمدة إلزامية عند الظهور حسب تصنيف المقسم
+CLASS_REQUIRED = {
+    'استثمار المقاسم المعدة للاستعمالات والاستثمارات الخاصة': ['نوع الاستعمال الخاص'],
+    'استثمار المقاسم المعدة لبناء الأبنية الخدمية العامة ذات الطابع التجاري والاستثماري': ['نوع المبنى الخدمي العام'],
+    'منشآت عامة خدمية': ['نوع المنشأة العامة الخدمية'],
+}
+INVESTOR_FIELDS = ['نوع المستثمر', 'اسم المستثمر الحالي', 'رقم قرار التخصيص', 'تاريخ قرار التخصيص']
 NAME_NOTES = re.compile(r'\((?:[^)]*)(مفصول|منسحب|ملغى|ملغي|متوفى|قرار|\d{4})')
 SUSPICIOUS_INVESTOR = re.compile(r'^(مفصول|اكتتاب\s*\d*|بقع[هة] استثماري[هة]|مركز تحويلي|المدينة الصناعية|لا يوجد|[\d.\s/]+)$')
 
@@ -467,8 +480,8 @@ def process_plots(city, f, lists):
                 flag('multi_value', name, v.replace('\n', ' ⏎ '))
             elif prob == 'text':
                 flag('date_text', name, v)
-            elif prob in ('invalid', 'zero', 'number'):
-                flag('date_invalid', name, v, {'zero': 'تاريخ صفري (00:00:00)', 'number': 'رقم في خانة تاريخ'}.get(prob))
+            elif prob in ('invalid', 'zero', 'old', 'number'):
+                flag('date_invalid', name, v, DATE_PROB_NOTE.get(prob))
             if d and d > REPORT_END:
                 flag('date_future', name, d.isoformat())
 
@@ -511,19 +524,22 @@ def process_plots(city, f, lists):
         if bucket is None:
             bucket = 'مخصص' if inv_real else ('شاغر' if inv == 'لا يوجد' else 'غير محدد')
 
-        # الحقول الإلزامية
-        req = ['القطاع', 'رقم المقسم', 'تصنيف المقسم', 'مرحلة المقسم', 'حالة التخديم']
-        if allocated:
-            req += ['نوع المستثمر', 'اسم المستثمر الحالي', 'الجنسية', 'رقم قرار التخصيص', 'تاريخ قرار التخصيص', 'نمط الاستثمار']
-        if txt(g('تصنيف المقسم')) == 'منشآت صناعية' and allocated:
-            req += ['فئة الصناعة']
-        if txt(g('طريقة الدفع')) == 'تقسيط':
-            req += ['عدد الأقساط', 'دورية الأقساط']
+        # الحقول الإلزامية (الأزرق الغامق في القالب). المساحة والدمج والإيجار لها فحوصها الخاصة أعلاه وأدناه.
+        cls_ = txt(g('تصنيف المقسم'))
+        req = ['القطاع', 'رقم المقسم', 'تصنيف المقسم', 'مرحلة المقسم', 'حالة التخديم', 'هل خُصص المقسم لمستثمر سابقاً؟', 'حاصل على بيان ملكية؟']
+        req += CLASS_REQUIRED.get(cls_, [])
+        if cls_ == 'منشآت صناعية' and allocated:
+            req += ['فئة الصناعة', 'اسم النشاط الصناعي']
         missing = [n for n in req if n in sh.idx and is_blank(g(n))]
         notes = txt(g('ملاحظات'))
         if missing and not notes:
             flag('required_missing', missing[0], None, ('و: ' + '، '.join(missing[1:])) if len(missing) > 1 else None)
             ISS.counts['required_missing'][city] += len(missing) - 1
+        if allocated:
+            inv_missing = [n for n in INVESTOR_FIELDS if n in sh.idx and is_blank(g(n))]
+            if inv_missing and not notes:
+                flag('investor_missing', inv_missing[0], None, ('و: ' + '، '.join(inv_missing[1:])) if len(inv_missing) > 1 else None)
+                ISS.counts['investor_missing'][city] += len(inv_missing) - 1
         if notes and 'لم أتمكن' in notes:
             flag('notes_missing_info', 'ملاحظات', notes)
 
@@ -636,7 +652,10 @@ def process_installments(city, f, plots):
     receipts = Counter()
     rec_rows = defaultdict(list)
     tot = paid = unpaid = overdue = no_due = 0
-    overdue_val = paid_val = due_val = 0.0
+    # القيم حسب عملة المقسم: لا تُجمع الليرة مع الدولار
+    values = defaultdict(lambda: {'paid': 0.0, 'overdue': 0.0, 'notDue': 0.0})
+    val_rows = []  # (المقسم، العملة، البند، القيمة) — تُجمع بعد فحص تناسب الأقساط مع قيمة المقسم
+    plot_total = Counter()
     overdue_plots = set()
     by_year = defaultdict(lambda: {'مدفوع': 0, 'غير مدفوع': 0})
     for rn, r in sh.rows:
@@ -658,6 +677,7 @@ def process_installments(city, f, plots):
         val, _ = num(g('قيمة القسط'))
         due, _ = date_of(g('تاريخ الاستحقاق'))
         is_paid = txt(g('مدفوع؟')) == 'نعم'
+        cur = (by_key[k].get('العملة') if k in by_key else None) or 'غير محدد'
         if not val:
             ISS.add('inst_value', city, sheet=T, row=rn, col=sh.col('قيمة القسط'), value=g('قيمة القسط'), note=key_txt)
         if not due:
@@ -665,7 +685,7 @@ def process_installments(city, f, plots):
             ISS.add('inst_due', city, sheet=T, row=rn, col=sh.col('تاريخ الاستحقاق'), value=g('تاريخ الاستحقاق'), note=key_txt)
         if is_paid:
             paid += 1
-            paid_val += val or 0
+            val_rows.append((k, cur, 'paid', val or 0))
             rno, rdate = txt(g('رقم الإيصال')), g('تاريخ الإيصال')
             if not rno or is_blank(rdate):
                 ISS.add('inst_receipt', city, sheet=T, row=rn, col=sh.col('رقم الإيصال'), value=rno, note=key_txt)
@@ -677,10 +697,11 @@ def process_installments(city, f, plots):
             unpaid += 1
             if due and due <= REPORT_END:
                 overdue += 1
-                overdue_val += val or 0
+                val_rows.append((k, cur, 'overdue', val or 0))
                 overdue_plots.add(k)
             else:
-                due_val += val or 0
+                val_rows.append((k, cur, 'notDue', val or 0))
+        plot_total[k] += val or 0
         if due:
             by_year[str(due.year)]['مدفوع' if is_paid else 'غير مدفوع'] += 1
         rv = []
@@ -693,10 +714,28 @@ def process_installments(city, f, plots):
         usd, _ = num(g('القيمة بالدولار'))
         INST_ROWS.append({
             '_id': f'{city}-inst-{rn}', '_src': rn, '_review': rv, 'المدينة': city, 'المقسم': k.split(' | ', 1)[1],
-            'رقم القسط': num(g('رقم القسط'))[0], 'قيمة القسط': val, 'تاريخ الاستحقاق': due.isoformat() if due else None,
+            'رقم القسط': num(g('رقم القسط'))[0], 'قيمة القسط': val, 'العملة': cur, 'تاريخ الاستحقاق': due.isoformat() if due else None,
             'مدفوع؟': txt(g('مدفوع؟')), 'الوضع': 'مدفوع' if is_paid else ('بلا تاريخ' if not due else 'متأخر' if due <= REPORT_END else 'غير مستحق بعد'),
             'رقم الإيصال': txt(g('رقم الإيصال')), 'تاريخ الإيصال': rd.isoformat() if rd else None, 'القيمة بالليرة': lira, 'القيمة بالدولار': usd,
         })
+    # مجموع الأقساط أكبر بكثير من المساحة × سعر المتر: الأرجح أن الأقساط بعملة غير عملة المقسم
+    odd_cur = set()
+    for k, total in plot_total.items():
+        p = by_key.get(k)
+        if not p or not total or not p.get('المساحة م²') or not p.get('سعر المتر'):
+            continue
+        ratio = total / (p['المساحة م²'] * p['سعر المتر'])
+        if ratio > 5:
+            odd_cur.add(k)
+            ISS.add('inst_currency', city, sheet='المقاسم', row=p['_src']['row'], value=k,
+                    note=f"مجموع الأقساط {total:,.0f}، والمساحة × سعر المتر = {p['المساحة م²'] * p['سعر المتر']:,.0f} {p.get('العملة') or ''}")
+            p['_review'].append(f'مجموع الأقساط ({total:,.0f}) لا يتناسب مع المساحة × سعر المتر')
+    for k, cur, bucket, v in val_rows:
+        values['عملة غير مؤكدة' if k in odd_cur else cur][bucket] += v
+    for r in INST_ROWS:
+        if r['المدينة'] == city and f"{city} | {r['المقسم']}" in odd_cur:
+            r['العملة'] = 'عملة غير مؤكدة'
+            r['_review'].append('مجموع أقساط المقسم لا يتناسب مع قيمته بعملته')
     for rk, n in receipts.items():
         if n > 1:
             ISS.add('inst_receipt_dup', city, sheet=T, row=rec_rows[rk][0], value=f'{rk[0]} بتاريخ {rk[1]}',
@@ -715,7 +754,7 @@ def process_installments(city, f, plots):
     if tot == 0:
         return None
     return dict(total=tot, paid=paid, unpaid=unpaid, overdue=overdue, overduePlots=len(overdue_plots), noDue=no_due,
-                paidValue=round(paid_val), overdueValue=round(overdue_val), notDueValue=round(due_val),
+                values=[{'currency': c, **{k: round(v) for k, v in vals.items()}} for c, vals in sorted(values.items(), key=lambda x: -x[1]['paid'])],
                 byYear=[{'year': y, **v} for y, v in sorted(by_year.items())])
 
 
@@ -738,8 +777,9 @@ def process_prev(city, f, plots):
             ISS.add('prev_cancel_date', city, sheet=T, row=rn, col=sh.col('تاريخ إلغاء التخصيص'), note=txt(g('المقسم')))
         elif cprob == 'text':
             ISS.add('date_text', city, sheet=T, row=rn, col=sh.col('تاريخ إلغاء التخصيص'), value=g('تاريخ إلغاء التخصيص'))
-        if isinstance(g('تاريخ التخصيص'), dt.time) or (_ := date_of(g('تاريخ التخصيص'))[1]) == 'zero':
-            ISS.add('date_invalid', city, sheet=T, row=rn, col=sh.col('تاريخ التخصيص'), value=g('تاريخ التخصيص'), note='تاريخ صفري (00:00:00)')
+        aprob = date_of(g('تاريخ التخصيص'))[1]
+        if aprob in ('zero', 'old'):
+            ISS.add('date_invalid', city, sheet=T, row=rn, col=sh.col('تاريخ التخصيص'), value=g('تاريخ التخصيص'), note=DATE_PROB_NOTE[aprob])
         if cd and cd > REPORT_END:
             ISS.add('date_future', city, sheet=T, row=rn, col=sh.col('تاريخ إلغاء التخصيص'), value=cd.isoformat())
         items.append({'المقسم': txt(g('المقسم')), 'المستثمر السابق': txt(g('اسم المستثمر السابق')),
@@ -785,8 +825,8 @@ def process_invest(city, f):
             d, prob = date_of(g(n))
             if prob == 'text':
                 ISS.add('date_text', city, sheet=T, row=rn, col=sh.col(n), value=g(n))
-            elif prob in ('invalid', 'zero', 'number'):
-                ISS.add('date_invalid', city, sheet=T, row=rn, col=sh.col(n), value=g(n))
+            elif prob in ('invalid', 'zero', 'old', 'number'):
+                ISS.add('date_invalid', city, sheet=T, row=rn, col=sh.col(n), value=g(n), note=DATE_PROB_NOTE.get(prob))
             p[k] = d.isoformat() if d else None
         projects.append(p)
 
@@ -986,7 +1026,7 @@ def main():
     print('قراءة الملفات…')
     data = {c: load_city(d) for d, c in CITY_DIRS.items() if os.path.isdir(os.path.join(ROOT, d))}
 
-    # العناوين المرجعية: من ملف عدرا (مطابق للإصدار 1.2)
+    # العناوين المرجعية: من ملف عدرا (قالب الوزارة الحالي)
     ref = data['عدرا']
     REF_HEADERS['المقاسم'] = [re.sub(r'\s+', ' ', str(h)).strip() if h else None for h in ref['plots']['sheets']['المقاسم'][0][1]]
     while REF_HEADERS['المقاسم'] and REF_HEADERS['المقاسم'][-1] is None:

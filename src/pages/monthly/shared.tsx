@@ -51,7 +51,8 @@ export function Section({ title, children, cols = 'lg:grid-cols-2', note }: { ti
         <span className="h-0.5 w-8 rounded-full bg-gold-500" />{title}
       </h2>
       {note && <p className="mb-3 mr-11 text-[13px] leading-relaxed text-slate-500">{note}</p>}
-      <div className={cls('mt-3 grid gap-5', cols)}>{children}</div>
+      {/* بدون عمود أساسي يتمدد العمود مع الرسم أو النص الطويل فيتجاوز عرض الموبايل */}
+      <div className={cls('mt-3 grid gap-5 [&>*]:min-w-0', !/(^|\s)grid-cols-/.test(cols) && 'grid-cols-1', cols)}>{children}</div>
     </section>
   )
 }
@@ -131,7 +132,7 @@ export function Columns({ data, keys, xKey = 'name', height = 280, stacked, colo
   colors?: Record<string, string>; names?: Record<string, string>; layout?: 'vertical'
 }) {
   if (!data?.length) return <Empty />
-  const tilt = !layout && data.length > 6
+  const tilt = !layout && (data.length > 6 || (data.length > 3 && window.innerWidth < 640))
   return (
     <div dir="ltr" style={{ height }}>
       <ResponsiveContainer>
@@ -161,14 +162,16 @@ export function Columns({ data, keys, xKey = 'name', height = 280, stacked, colo
 }
 
 /** بطاقة مؤشر: مجموع المدن المختارة + توزيعه على كل مدينة */
-export function MKpi({ label, icon, get, unit, hint, tone = 'green', format = fmt }: {
+export function MKpi({ label, icon, get, unit, hint, tone = 'green', format = fmt, aggregate }: {
   label: string; icon: ReactNode; get: (c: MCity) => number | null | undefined; unit?: string; hint?: ReactNode
   tone?: 'green' | 'gold' | 'red'; format?: (n: number) => string
+  /** للنسب والمتوسطات: كيف يُحسب الرقم الكلي من أرقام المدن (الافتراضي: المجموع) */
+  aggregate?: (known: [MCity, number][]) => number
 }) {
   const { cities } = useMCity()
   const vals = cities.map((c) => [c, get(c)] as const)
   const known = vals.filter(([, v]) => v !== null && v !== undefined) as [MCity, number][]
-  const total = known.reduce((n, [, v]) => n + v, 0)
+  const total = aggregate ? aggregate(known) : known.reduce((n, [, v]) => n + v, 0)
   const color = tone === 'red' ? 'text-red-700' : tone === 'gold' ? 'text-gold-600' : 'text-brand-700'
   return (
     <div className="stat-box">
@@ -176,17 +179,17 @@ export function MKpi({ label, icon, get, unit, hint, tone = 'green', format = fm
         <span className="text-[12.5px] font-bold leading-snug text-slate-500">{label}</span>
         <span className={cls('rounded-lg p-1.5', tone === 'gold' ? 'bg-gold-100 text-gold-600' : tone === 'red' ? 'bg-red-50 text-red-700' : 'bg-brand-50 text-brand-700')}>{icon}</span>
       </div>
-      <div className={cls('num mt-1 text-right text-[24px] font-extrabold leading-tight', color)}>
+      <div className={cls('num money mt-1 text-right text-[24px] font-extrabold leading-tight', color)}>
         {known.length ? format(total) : <span className="text-base text-slate-400">غير متوفر</span>}
         {unit && known.length > 0 && <span className="mr-1 text-xs font-bold text-slate-400">{unit}</span>}
       </div>
       {cities.length > 1 && (
         <div className="mt-1.5 grid grid-cols-1 gap-y-0.5 text-[11.5px] font-bold">
           {vals.map(([c, v]) => (
-            <span key={c} className="flex items-center gap-1.5 text-slate-500">
+            <span key={c} className="flex min-w-0 items-center gap-1.5 whitespace-nowrap text-slate-500">
               <CityDot city={c} className="!h-2 !w-2" />{c}
               <span className="flex-1 border-b border-dotted border-slate-200" />
-              <span className={cls('num', v === null || v === undefined ? 'text-slate-300' : 'text-slate-700')}>{v === null || v === undefined ? 'غير متوفر' : format(v)}</span>
+              <span className={cls('num money', v === null || v === undefined ? 'text-slate-300' : 'text-slate-700')}>{v === null || v === undefined ? 'غير متوفر' : format(v)}</span>
             </span>
           ))}
         </div>

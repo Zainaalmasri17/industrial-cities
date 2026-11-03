@@ -27,7 +27,7 @@ function CityTotals({ c }: { c: MCity }) {
         {tiles.map(([k, v]) => (
           <div key={k} className="rounded-xl bg-[#faf9f5] p-2.5 ring-1 ring-[var(--border)]">
             <div className="text-[11.5px] font-bold text-slate-500">{k}</div>
-            <div className="num mt-0.5 text-right text-[16px] font-extrabold text-brand-700">{v}</div>
+            <div className="num money mt-0.5 text-right text-[16px] font-extrabold text-brand-700">{v}</div>
           </div>
         ))}
       </div>
@@ -65,9 +65,9 @@ export function Invest() {
     { key: 'اسم المشروع', label: 'اسم المشروع', render: (r) => <span className="line-clamp-3 min-w-64 text-[13px]" title={r['اسم المشروع']}>{r['اسم المشروع']}</span> },
     { key: 'نوع المشروع', label: 'النوع', filter: true },
     { key: 'حالة المشروع', label: 'الحالة', filter: true, render: (r) => (r['حالة المشروع'] ? <Badge value={r['حالة المشروع']} className={r['حالة المشروع'] === 'متعاقد ومتوقف' ? '!bg-red-50 !text-red-700' : r['حالة المشروع'] === 'منتهٍ' ? '!bg-gold-100 !text-gold-600' : ''} /> : <span className="text-xs italic text-rose-400">فارغ</span>) },
-    { key: 'planned', label: 'الاعتماد المخطط', render: (r) => <span className="num whitespace-nowrap">{fmtSYP(r.planned)}</span> },
-    { key: 'contract', label: 'قيمة العقد', render: (r) => <span className="num whitespace-nowrap">{fmtSYP(r.contract)}</span> },
-    { key: 'spent', label: 'المنفق', render: (r) => <span className="num whitespace-nowrap">{fmtSYP(r.spent)}</span> },
+    { key: 'planned', label: 'الاعتماد المخطط', render: (r) => <span className="num money whitespace-nowrap">{fmtSYP(r.planned)}</span> },
+    { key: 'contract', label: 'قيمة العقد', render: (r) => <span className="num money whitespace-nowrap">{fmtSYP(r.contract)}</span> },
+    { key: 'spent', label: 'المنفق', render: (r) => <span className="num money whitespace-nowrap">{fmtSYP(r.spent)}</span> },
     { key: 'physical', label: 'التنفيذ المادي', render: (r) => <Progress value={r.physical} flagged={r._review.some((x: string) => x.includes('المادي'))} /> },
     { key: 'financial', label: 'التنفيذ المالي', render: (r) => <Progress value={r.financial} color="#c7a66b" flagged={r._review.some((x: string) => x.includes('المالي'))} /> },
     { key: 'الجهة المنفذة', label: 'الجهة المنفذة' },
@@ -76,7 +76,7 @@ export function Invest() {
     { key: 'dStop', label: 'تاريخ التوقف', hidden: true },
     { key: 'سبب التوقف', label: 'سبب التوقف', hidden: true },
     { key: 'dEnd', label: 'تاريخ الانتهاء', hidden: true },
-    { key: 'revised', label: 'الاعتماد المعدل', hidden: true, render: (r) => <span className="num">{fmtSYP(r.revised)}</span> },
+    { key: 'revised', label: 'الاعتماد المعدل', hidden: true, render: (r) => <span className="num money">{fmtSYP(r.revised)}</span> },
     { key: 'القطاع', label: 'القطاع', hidden: true },
     { key: 'الحساب الجزئي', label: 'الحساب الجزئي', hidden: true },
     { key: 'ملاحظات', label: 'ملاحظات', hidden: true },

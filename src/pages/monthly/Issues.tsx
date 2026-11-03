@@ -26,7 +26,7 @@ export function Issues() {
 
   return (
     <>
-      <div className="mt-6 grid gap-4 md:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4 [&>*]:min-w-0">
         <Stat label="أنواع المشاكل" value={all.length} icon={<ShieldAlert size={16} />} />
         <Stat label="عالية الخطورة" value={all.filter((i) => i.severity === 'مرتفع').length} tone="red" icon={<FileWarning size={16} />} />
         <Stat label="مواضع المشاكل" value={fmt(all.reduce((n, i) => n + total(i), 0))} tone="gold" hint="خلية أو سطر أو ملف" />
@@ -56,7 +56,7 @@ export function Issues() {
               )
             })}
           </ul>
-          <p className="mt-3 text-[11.5px] leading-relaxed text-slate-400">المقسم «سليم» إن لم تظهر عليه أي مشكلة من فحوص شيت المقاسم والأقساط. مشكلة صغيرة واحدة (مثل الجنسية الفارغة) تكفي ليُعلَّم.</p>
+          <p className="mt-3 text-[11.5px] leading-relaxed text-slate-400">المقسم «سليم» إن لم تظهر عليه أي مشكلة من فحوص شيت المقاسم والأقساط. مشكلة واحدة (مثل خانة إلزامية فارغة) تكفي ليُعلَّم.</p>
         </Card>
       </Section>
 

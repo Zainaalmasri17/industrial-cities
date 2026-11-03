@@ -74,7 +74,7 @@ const DEFS: Record<string, { title: string; subtitle: string; source: string; ro
   },
   installments: {
     title: 'الأقساط',
-    subtitle: 'سطر لكل قسط. «متأخر» = غير مدفوع وتاريخ استحقاقه قبل 2026-10-31. عبّأت هذا الشيت حسياء وباب الهوى فقط.',
+    subtitle: 'سطر لكل قسط. «متأخر» = غير مدفوع وتاريخ استحقاقه قبل نهاية تشرين الأول 2026. عبّأت هذا الشيت حسياء وباب الهوى فقط.',
     source: 'ملف المقاسم — شيت الأقساط',
     rows: () => MONTHLY.installments,
     columns: [
@@ -82,6 +82,7 @@ const DEFS: Record<string, { title: string; subtitle: string; source: string; ro
       { key: 'المقسم', label: 'المقسم' },
       num('رقم القسط'),
       num('قيمة القسط'),
+      { key: 'العملة', label: 'العملة', filter: true },
       { key: 'تاريخ الاستحقاق', label: 'الاستحقاق', render: (r) => <span className="num whitespace-nowrap">{r['تاريخ الاستحقاق'] ?? <span className="text-xs italic text-rose-400">فارغ</span>}</span> },
       { key: 'الوضع', label: 'الوضع', filter: true, render: (r) => <Badge value={r['الوضع']} className={INST_STYLE[r['الوضع']]} /> },
       { key: 'رقم الإيصال', label: 'رقم الإيصال', render: (r) => <span className="num">{r['رقم الإيصال'] ?? '—'}</span> },
@@ -93,7 +94,7 @@ const DEFS: Record<string, { title: string; subtitle: string; source: string; ro
   },
   previous: {
     title: 'التخصيصات السابقة',
-    subtitle: 'المستثمرون الذين أُلغي تخصيصهم. سجّلت حسياء وحدها بيانات في هذا الشيت.',
+    subtitle: 'المستثمرون الذين أُلغي تخصيصهم. سجّلت عدرا وحسياء بيانات في هذا الشيت.',
     source: 'ملف المقاسم — شيت التخصيصات السابقة',
     rows: () => tables().previous,
     columns: [
@@ -117,9 +118,9 @@ const DEFS: Record<string, { title: string; subtitle: string; source: string; ro
       { key: 'اسم المشروع', label: 'اسم المشروع', render: (r) => <span className="line-clamp-3 min-w-64 text-[13px]" title={r['اسم المشروع']}>{r['اسم المشروع']}</span> },
       { key: 'نوع المشروع', label: 'النوع', filter: true },
       { key: 'حالة المشروع', label: 'الحالة', filter: true, render: (r) => (r['حالة المشروع'] ? <Badge value={r['حالة المشروع']} /> : <span className="text-xs italic text-rose-400">فارغ</span>) },
-      { key: 'planned', label: 'الاعتماد المخطط', render: (r) => <span className="num whitespace-nowrap">{fmtSYP(r.planned)}</span> },
-      { key: 'contract', label: 'قيمة العقد', render: (r) => <span className="num whitespace-nowrap">{fmtSYP(r.contract)}</span> },
-      { key: 'spent', label: 'المنفق', render: (r) => <span className="num whitespace-nowrap">{fmtSYP(r.spent)}</span> },
+      { key: 'planned', label: 'الاعتماد المخطط', render: (r) => <span className="num money whitespace-nowrap">{fmtSYP(r.planned)}</span> },
+      { key: 'contract', label: 'قيمة العقد', render: (r) => <span className="num money whitespace-nowrap">{fmtSYP(r.contract)}</span> },
+      { key: 'spent', label: 'المنفق', render: (r) => <span className="num money whitespace-nowrap">{fmtSYP(r.spent)}</span> },
       { key: 'physical', label: 'التنفيذ المادي', render: (r) => <Progress value={r.physical} /> },
       { key: 'financial', label: 'التنفيذ المالي', render: (r) => <Progress value={r.financial} color="#c7a66b" /> },
       { key: 'الجهة المنفذة', label: 'الجهة المنفذة' },

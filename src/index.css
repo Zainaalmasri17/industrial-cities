@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* هوية وزارة الاقتصاد والصناعة — نفس نظام منصة الكروت الشخصية:
+/* هوية وزارة الصناعة والتجارة الداخلية — نفس نظام منصة الكروت الشخصية:
    أخضر الوزارة + ذهبي، خط Tajawal، شريط علوي بنقشة، قائمة جانبية خضراء. */
 @theme {
   --font-sans: "Tajawal", "Cairo", system-ui, "Segoe UI", sans-serif;
@@ -131,6 +131,25 @@ body {
   width: 0;
   padding-inline: 0;
   border: 0;
+}
+/* الموبايل: القائمة فوق المحتوى بدل أن تدفعه */
+.sidebar-backdrop {
+  position: fixed;
+  inset: var(--header-h) 0 0 0;
+  z-index: 39;
+  background: rgba(4, 48, 42, 0.45);
+}
+@media (max-width: 1023px) {
+  .site-header {
+    padding: 0 12px;
+  }
+  .app-sidebar {
+    position: fixed;
+    inset-inline-start: 0;
+    z-index: 40;
+    max-width: 85vw;
+    box-shadow: -12px 0 40px -12px rgba(4, 48, 42, 0.6);
+  }
 }
 .app-sidebar-link {
   position: relative;
@@ -291,6 +310,11 @@ body {
 }
 .data-table tbody tr:hover {
   background: var(--gold-wash);
+}
+
+/* مبلغ مع وحدته: الرقم من اليمين ثم مليون/مليار ثم العملة */
+.num.money {
+  direction: rtl;
 }
 
 .num {
